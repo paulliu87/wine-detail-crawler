@@ -15,7 +15,13 @@ def get_structure(wine_id):
     response = requests.get(url, params = {"language": "en"}, headers = request_headers)
     print(f"Got structure response: status={response.status_code} wine_id: {wine_id}")
     if response.status_code == 200:
-        return response.json()["tastes"]["structure"]
+        data = response.json()["tastes"]["structure"]
+        structure = dict()
+        structure['acidity'] = data["acidity"]
+        structure['intensity'] = data["intensity"]
+        structure['sweetness'] = data["sweetness"]
+        structure['tannin'] = data["tannin"]
+        return structure
     else:
         return None
 
@@ -57,17 +63,19 @@ print(f"Completed Explore API request: status={r.status_code}")
 # wine type, wine name, producer name (winery name), bold, tannic, sweet, acidic
 
 
-results = []
+results = [('wine id', 'wine type', 'vintage year', 'varietal name', 'winery name', 'structure')]
 for i, t in enumerate(r.json()["explore_vintage"]["matches"]):
     wine_id = t["vintage"]["wine"]["id"]
     print(f"Wine index={i} with id={wine_id} on page")
-    if t["vintage"]["wine"]["style"] != None and i < 100:
+    if t["vintage"]["wine"]["style"] != None and i < 10:
         print("Sleeping for 5 seconds")
         time.sleep(5)
         print("Woke up after 5 seconds")
         results.append(
             (
+                wine_id,
                 wine_types.get(int(t["vintage"]["wine"]["style"]["wine_type_id"]), t["vintage"]["wine"]["style"]["wine_type_id"]),
+                t["vintage"]["year"],
                 t["vintage"]["wine"]["style"]["varietal_name"],
                 t["vintage"]["wine"]["winery"]["name"],
                 get_structure(wine_id)
